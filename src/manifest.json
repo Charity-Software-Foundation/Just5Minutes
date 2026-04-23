@@ -26,5 +26,5 @@
    "manifest_version": 3,
    "name": "Just 5 Minutes",
    "permissions": [ "storage", "tabs", "alarms" ],
-   "version": "1.0.0"
+   "version": "1.0.1"
 }
