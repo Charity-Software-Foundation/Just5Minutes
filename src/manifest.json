@@ -1,0 +1,30 @@
+{
+   "action": {
+      "default_icon": {
+         "128": "assets/icons/icon_128.png",
+         "16": "assets/icons/icon_16.png",
+         "48": "assets/icons/icon_48.png"
+      },
+      "default_popup": "src/popup/popup.html"
+   },
+   "background": {
+      "service_worker": "src/background/background.js"
+   },
+   "content_scripts": [ {
+      "css": [ "src/styles/overlay.css" ],
+      "js": [ "src/content/content.js" ],
+      "matches": [ "\u003Call_urls>" ],
+      "run_at": "document_start"
+   } ],
+   "description": "The pause between you and your distractions.",
+   "host_permissions": [ "\u003Call_urls>" ],
+   "icons": {
+      "128": "assets/icons/icon_128.png",
+      "16": "assets/icons/icon_16.png",
+      "48": "assets/icons/icon_48.png"
+   },
+   "manifest_version": 3,
+   "name": "Just 5 Minutes",
+   "permissions": [ "storage", "tabs", "alarms" ],
+   "version": "1.0.0"
+}

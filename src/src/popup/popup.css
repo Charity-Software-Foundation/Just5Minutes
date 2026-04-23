@@ -1,0 +1,164 @@
+/* --- Just 5 Minutes - Popup --- */
+
+:root {
+  --green: #2ed573;
+  --green-hover: #26af61;
+  --green-glow: rgba(46, 213, 115, 0.18);
+  --green-soft: rgba(46, 213, 115, 0.08);
+  --text: #1a1a2e;
+  --text-muted: #6b7280;
+  --text-dim: #c4c9d4;
+  --bg: #f8f7f4;
+  --card: #ffffff;
+  --border: #ebe8e3;
+  --danger: #ef4444;
+  --danger-soft: rgba(239, 68, 68, 0.08);
+  --radius: 14px;
+  --font-display: 'DM Serif Display', Georgia, serif;
+  --font-body: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 320px;
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Header */
+.header {
+  padding: 20px 20px 14px;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: -0.3px;
+  line-height: 1;
+}
+
+.title-dark { color: var(--text); }
+.title-accent { color: var(--green); }
+
+/* Body */
+.body {
+  padding: 0 16px 16px;
+}
+
+/* Site list */
+ul#site-list {
+  list-style: none;
+  background: var(--card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  max-height: 540px;
+  overflow-y: auto;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+ul#site-list::-webkit-scrollbar { width: 3px; }
+ul#site-list::-webkit-scrollbar-track { background: transparent; }
+ul#site-list::-webkit-scrollbar-thumb { background: #ddd; border-radius: 3px; }
+
+/* Site item — base */
+.site-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s ease;
+}
+
+.site-item:last-child { border-bottom: none; }
+
+/* Non-current items — hover reveal */
+.site-item:not(.current-site):hover {
+  background: var(--green-soft);
+}
+
+.site-item:not(.current-site) .action-btn {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.site-item:not(.current-site):hover .action-btn {
+  opacity: 1;
+}
+
+/* Domain text */
+.site-domain {
+  font-size: 14px;
+  color: var(--text-muted);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Current site — hero */
+.current-site {
+  padding: 14px;
+  background: var(--green-soft);
+  border-bottom: 1px solid rgba(46, 213, 115, 0.12);
+}
+
+.current-site .site-domain {
+  font-weight: 600;
+  color: var(--text);
+  font-size: 15px;
+}
+
+/* Action buttons — shared */
+.action-btn {
+  border: none;
+  border-radius: 8px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 5px 12px;
+  letter-spacing: 0.2px;
+  transition: all 0.15s ease;
+}
+
+/* Add — green pill */
+.action-add {
+  background: var(--green);
+  color: white;
+  box-shadow: 0 2px 8px var(--green-glow);
+}
+
+.action-add:hover {
+  background: var(--green-hover);
+  box-shadow: 0 3px 12px var(--green-glow);
+  transform: translateY(-1px);
+}
+
+.action-add:active {
+  transform: translateY(0);
+}
+
+/* Remove — ghost */
+.action-remove {
+  background: transparent;
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+}
+
+.action-remove:hover {
+  background: var(--danger-soft);
+  color: var(--danger);
+  border-color: rgba(239, 68, 68, 0.25);
+}
+
+/* Empty state */
+.empty-tip {
+  text-align: center;
+  padding: 32px 0;
+  color: var(--text-dim);
+  font-size: 12px;
+  font-style: italic;
+}
