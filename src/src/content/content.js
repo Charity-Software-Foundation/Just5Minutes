@@ -47,11 +47,14 @@ async function checkStatusAndRender() {
         return;
       }
 
-      if (response && response.active) {
-         showFloatingTimer(response);
-      } else {
-         const timerEl = document.getElementById("j5m-timer");
-         if (timerEl) timerEl.style.display = "none";
+      // Non-distract host: never show the floating timer here, even if a
+      // session for this tab exists under a different origin. Hide any leftover
+      // timer and stop its polling loop.
+      const timerEl = document.getElementById("j5m-timer");
+      if (timerEl) timerEl.style.display = "none";
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
       }
     });
   } catch(e) {}
