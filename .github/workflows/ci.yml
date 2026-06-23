@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Syntax-check source JS
+        run: |
+          node --check src/src/background/background.js
+          node --check src/src/content/content.js
+          node --check src/src/popup/popup.js
+
+      - name: Validate manifest.json
+        run: node -e "JSON.parse(require('fs').readFileSync('src/manifest.json','utf8'))"
