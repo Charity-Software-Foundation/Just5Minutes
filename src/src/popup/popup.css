@@ -14,8 +14,8 @@
   --danger: #ef4444;
   --danger-soft: rgba(239, 68, 68, 0.08);
   --radius: 14px;
-  --font-display: 'DM Serif Display', Georgia, serif;
-  --font-body: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: Georgia, serif;
+  --font-body: -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
