@@ -41,38 +41,47 @@ chrome.runtime.onInstalled.addListener(() => {
 
 // Message handler
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === "GET_CURRENT_TAB_STATUS") {
-    getCurrentTabStatus(sendResponse);
-    return true;
-  }
-  if (request.action === "STOP_SESSION") {
-    handleStopSession(request.tabId, sendResponse);
-    return true;
-  }
+  (async () => {
+    await ready;
 
-  const tabId = sender.tab ? sender.tab.id : null;
-  const origin = parseOrigin(sender.url);
-  const hostname = parseHostname(sender.url);
+    if (request.action === "GET_CURRENT_TAB_STATUS") {
+      getCurrentTabStatus(sendResponse);
+      return;
+    }
+    if (request.action === "STOP_SESSION") {
+      handleStopSession(request.tabId, sendResponse);
+      return;
+    }
 
-  if (request.action === "START_SESSION") {
-    handleStartSession(tabId, request.duration, sendResponse, origin);
-    return true;
-  } else if (request.action === "GET_REMAINING_TIME") {
-    handleGetTime(tabId, sendResponse, origin);
-    return true;
-  } else if (request.action === "ADD_DISTRACT_SITE") {
-    addDistractSite(request.domain, sendResponse);
-    return true;
-  } else if (request.action === "EXTEND_SESSION") {
-    handleExtendSession(tabId, request.duration, sendResponse, origin, hostname);
-    return true;
-  } else if (request.action === "CLOSE_TAB") {
-    handleCloseTab(tabId);
-    return false;
-  }
+    const tabId = sender.tab ? sender.tab.id : null;
+    const origin = parseOrigin(sender.url);
+    const hostname = parseHostname(sender.url);
+
+    if (request.action === "START_SESSION") {
+      handleStartSession(tabId, request.duration, sendResponse, origin);
+    } else if (request.action === "GET_REMAINING_TIME") {
+      handleGetTime(tabId, sendResponse, origin);
+    } else if (request.action === "ADD_DISTRACT_SITE") {
+      addDistractSite(request.domain, sendResponse);
+    } else if (request.action === "EXTEND_SESSION") {
+      handleExtendSession(tabId, request.duration, sendResponse, origin, hostname);
+    } else if (request.action === "CLOSE_TAB") {
+      handleCloseTab(tabId);
+    }
+  })();
+  return true;
 });
 
 let activeSessions = {};
+
+// Rehydrate on every SW activation so sessions survive worker termination.
+const ready = chrome.storage.local.get(['activeSessions']).then(r => {
+  activeSessions = r.activeSessions || {};
+});
+
+function persistSessions() {
+  chrome.storage.local.set({ activeSessions });
+}
 
 function handleStartSession(tabId, durationMinutes, sendResponse, origin) {
   const now = Date.now();
@@ -82,6 +91,7 @@ function handleStartSession(tabId, durationMinutes, sendResponse, origin) {
     endTime: endTime,
     origin: origin || null
   };
+  persistSessions();
   chrome.alarms.create(`session_${tabId}`, { when: endTime });
   sendResponse({ success: true, endTime: endTime });
 }
@@ -89,6 +99,7 @@ function handleStartSession(tabId, durationMinutes, sendResponse, origin) {
 function handleStopSession(tabId, sendResponse) {
   if (activeSessions[tabId]) {
     delete activeSessions[tabId];
+    persistSessions();
     chrome.alarms.clear(`session_${tabId}`);
 
     chrome.tabs.create({ url: "chrome://newtab" }, () => {
@@ -109,6 +120,7 @@ function handleExtendSession(tabId, durationMinutes, sendResponse, origin, hostn
     }
     const newEndTime = Math.max(session.endTime, now) + durationMinutes * 60 * 1000;
     session.endTime = newEndTime;
+    persistSessions();
     chrome.alarms.create(`session_${tabId}`, { when: newEndTime });
     sendResponse({ success: true, endTime: newEndTime });
   } else {
@@ -132,6 +144,7 @@ function handleCloseTab(tabId) {
     });
     if (activeSessions[tabId]) {
       delete activeSessions[tabId];
+      persistSessions();
       chrome.alarms.clear(`session_${tabId}`);
     }
   }
@@ -165,6 +178,7 @@ function handleGetTime(tabId, sendResponse, origin) {
 }
 
 async function getCurrentTabStatus(sendResponse) {
+  await ready;
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
   if (tab && activeSessions[tab.id]) {
@@ -199,8 +213,9 @@ function addDistractSite(domain, sendResponse) {
   });
 }
 
-chrome.alarms.onAlarm.addListener((alarm) => {
+chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (!alarm.name.startsWith("session_")) return;
+  await ready;
   const tabId = parseInt(alarm.name.split("_")[1]);
   const session = activeSessions[tabId];
 
@@ -214,13 +229,17 @@ chrome.alarms.onAlarm.addListener((alarm) => {
     if (onSessionOrigin) {
       chrome.tabs.sendMessage(tabId, { action: "TIME_UP" }).catch(() => {});
     }
-    if (activeSessions[tabId]) delete activeSessions[tabId];
+    if (activeSessions[tabId]) {
+      delete activeSessions[tabId];
+      persistSessions();
+    }
   });
 });
 
 chrome.tabs.onRemoved.addListener((tabId) => {
   if (activeSessions[tabId]) {
     delete activeSessions[tabId];
+    persistSessions();
     chrome.alarms.clear(`session_${tabId}`);
   }
 });
